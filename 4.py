@@ -74,4 +74,26 @@ print("The number of XMASs is ", count)
 
 # part 2 -----------------------------------------------------------------------
 
-# wow, tricky
+# wow, tricky. I'll try a different approach this time
+#   - loop through the data, looking for As
+#   - when A is found, send the location to a checker function
+#   - check the diagonals of A for a set = {m, s}, and count if valid
+
+def a_makes_x(a_loc):
+    """Given a location, this checks if there are two diagonal MASs around the A, returns boolean"""
+    mas = {'M', 'S'} # sets make sense for this
+    if (
+        {data[a_loc[0] - 1][a_loc[1] - 1], data[a_loc[0] + 1][a_loc[1] + 1]} == mas
+        and {data[a_loc[0] - 1][a_loc[1] + 1], data[a_loc[0] + 1][a_loc[1] - 1]} == mas 
+        ):
+        return True
+    return False
+
+# now we just gotta loop
+count = 0
+for y in range(1, len(data)-1):
+    for x in range(1, len(data[0])-1):
+        if data[y][x] == 'A' and a_makes_x([y, x]):
+            count += 1
+
+print("Count of MASs in an X is ", count)
