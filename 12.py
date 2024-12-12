@@ -141,3 +141,12 @@ for y in range(len(mapgrid)):
 price = sum([r['area'] * r['posts'] for r in regions.values()])
 
 print('The total price for discounted fencing is', price)
+
+# Lessons learned:
+# - today, I was really helped by insights into the data/problem
+#   - quickly seeing the simplicity in calculating the fences helped
+# - for part 2, figuring out how to check for convex/concave corners took some time and thought
+#   - but, I saw fairly quickly that the key was finding the corners and not counting the straight lines
+# - in the end, I never really used the region_ids I created. Oh well
+# - today might be the first time I used a recursive function that doesn't return anything. neat
+#   - putting the function calls in a comprehension was useful
