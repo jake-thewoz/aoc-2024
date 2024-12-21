@@ -1,4 +1,6 @@
 import data_getter
+from functools import cache
+from itertools import chain
 
 data = data_getter.get_data('21').splitlines()
 
@@ -10,7 +12,7 @@ data = data_getter.get_data('21').splitlines()
 
 # data wrangling ------------------------------------------
 
-codes = [list(datum) for datum in data]
+codes = [tuple(datum) for datum in data]
 
 # constants -----------------------------------------------
 numpad = {
@@ -37,12 +39,18 @@ dpad = {
 # to push the buttons, it's really about finding the difference
 # between the numbers.
 
+@cache
 def sign(x):
     """Takes any integer and returns 1 if positive, -1 if neg, 0 if 0"""
     return x // abs(x) if x != 0 else 0
 
+memo_table = {}
+
+@cache
 def expand_tuple(tup, pad, danger=False):
     """This takes the difference between two points, and expand it into one-step moves"""
+    if pad == 'dpad' and tup in memo_table:
+        return memo_table[tup]
     part1 = []
     part2 = []
     # we'll start with the default optimization
@@ -84,12 +92,12 @@ def expand_tuple(tup, pad, danger=False):
             part2 = [(-1,0)] * abs(tup[0])
 
     # sequences always end with pushing 'A'
+    memo_table[tup] = part1 + part2 + ['A']
     return part1 + part2 + ['A']
-
 
 def get_instructions(nums, pad):
     """This takes the numbers from the numpad and turns them into instructions"""
-    nums.insert(0, 'A') # we always start at 'A'
+    nums = ('A',) + nums
     numbers = []
     if pad == 'numpad':
         numbers = [numpad[num] for num in nums] # we turn them into coords here
@@ -104,19 +112,21 @@ def get_instructions(nums, pad):
 
     # now we turn these differences into instructions
     instructions = []
-    for i in range(len(diffs)):
-        # this is an ugly if statement, but we need to know if it's possible
-        # to accidentally hit the no-go space
-        if (pad == 'numpad' 
-            and (numbers[i][1] == 0 and numbers[i+1][0] == 3)
-            or (numbers[i+1][1] == 0 and numbers[i][0] == 3)):
-            instructions += expand_tuple(diffs[i], pad, True)
-        else:
-            instructions += expand_tuple(diffs[i], pad, False)
+    if pad == 'numpad':
+        for i in range(len(diffs)):
+            # this is an ugly if statement, but we need to know if it's possible
+            # to accidentally hit the no-go space
+            if ((numbers[i][1] == 0 and numbers[i+1][0] == 3)
+                or (numbers[i+1][1] == 0 and numbers[i][0] == 3)):
+                instructions += expand_tuple(diffs[i], pad, True)
+            else:
+                instructions += expand_tuple(diffs[i], pad, False)
+    else:
+        instructions = list(chain.from_iterable(expand_tuple(diff, pad, False) for diff in diffs))
 
     # insts = [printpad[dir] for dir in instructions]
     # print(''.join(insts))
-    return instructions
+    return tuple(instructions)
 
 # main entry point --------------------------------------------------------------------
 
@@ -127,6 +137,28 @@ for code in codes:
     radiation_robot = get_instructions(depressurized_robot, 'dpad')
     cold_robot = get_instructions(radiation_robot, 'dpad')
     sequence = len(cold_robot)
+    numeric = int(''.join([num for num in code if num.isdigit()]))
+    complexities.append(numeric * sequence)
+
+print('The sum of the complexities is',sum(complexities))
+
+# part two ----------------------------------------------------------------------------
+
+# let's see if brute force will work with caching!
+
+complexities = []
+robot_count = 25
+for code in codes:
+    print('code:',code)
+    robots = [None] * robot_count
+    for i in range(len(robots)):
+        print('robot:',i)
+        if i == 0:
+            robots[i] = get_instructions(code, 'numpad')
+        else:
+            robots[i] = get_instructions(robots[i-1], 'dpad')
+
+    sequence = len(robots[-1])
     numeric = int(''.join([num for num in code if num.isdigit()]))
     complexities.append(numeric * sequence)
 
