@@ -33,8 +33,7 @@ def get_data(day):
 
         # First we save as txt
         with open("data/day_" + str(day) + ".txt", "w") as f:
-            for line in data:
-                f.write(line + "\n")
+            f.write('\n'.join(data))
         # Then we re-load the data from the text
         # This just helps keep performance consistent
         with open(f"data/day_{day}.txt", "r") as f:
