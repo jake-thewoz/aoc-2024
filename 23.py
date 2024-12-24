@@ -34,3 +34,7 @@ largest = max(nx.find_cliques(graph), key=len)
 
 largest.sort()
 print('The password to the party is', ','.join(largest))
+
+# Lessons Learned:
+#   - felt like I 'cheated' a little bit today
+#   - but I learned about graphs and cliques
